@@ -24,6 +24,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
   const [form] = Form.useForm()
   const evaluator = useMath()
 
+
   const goNext = () => {
     if (!swiper) return
 
@@ -123,6 +124,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
           }
         })
         .reduce<boolean>((previous, current) => previous && current, true)
+      localStorage.setItem(field.id, nextVisibility[field.id])
     })
 
     console.log('updatevalues nextVisibility: ', nextVisibility)
@@ -171,6 +173,13 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
             .map((field, i) => {
               if (field.type === 'hidden') {
                 return null
+              }
+
+              if(typeof localStorage.getItem(field.id) !== 'undefined'){
+                console.log('localStorage.getItem( field.id )', localStorage.getItem(field.id))
+                if(localStorage.getItem(field.id) === 'false'){
+                  return null
+                }
               }
 
               return (
