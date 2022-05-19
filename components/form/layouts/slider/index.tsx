@@ -1,6 +1,5 @@
-import { Modal } from 'antd'
+import { Modal, Form } from 'antd'
 import debug from 'debug'
-import React, { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import SwiperClass from 'swiper'
 import { Swiper, SwiperProps, SwiperSlide } from 'swiper/react'
@@ -9,6 +8,9 @@ import { useWindowSize } from '../../../use.window.size'
 import { LayoutProps } from '../layout.props'
 import { Field } from './field'
 import { FormPage } from './page'
+import React, { useCallback, useEffect, useState } from 'react'
+import { fieldTypes } from '../../types'
+import { useMath } from '../../../use.math'
 
 const logger = debug('layout/slider')
 
@@ -18,6 +20,9 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
   const { height } = useWindowSize()
   const { design, startPage, endPage, fields } = props.form
   const { finish, setField } = props.submission
+  const [visiblity, setVisibility] = useState({})
+  const [form] = Form.useForm()
+  const evaluator = useMath()
 
   const goNext = () => {
     if (!swiper) return
@@ -43,6 +48,101 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     noSwiping: true,
     updateOnWindowResize: true,
   }
+
+
+  const updateValues = useCallback((data) => {
+    let id = null
+    let slug = null
+    let value = null
+    if(typeof data !== 'undefined' && data !== null){
+      value = data.target.value
+      // identify the corresponding field, get the corresponding id and slug
+      fields.forEach(field => {
+        const option = field.options.filter(option => option.value === value)
+        if(option.length === 0){
+          return
+        } else {
+          id= field.id
+          slug = field.slug ? field.slug : null
+        }
+      })
+    }
+
+
+    const defaults = {}
+    fields.forEach(field => {
+      if( id !== null && field.id === id){
+        defaults[`@${field.id}`] = value
+        localStorage.setItem(`@${field.id}`, value);
+        if (field.slug) {
+          defaults[`$${field.slug}`] = value
+          localStorage.setItem(`$${field.slug}`, value);
+        }
+      } else {
+        const defaultValue = field.defaultValue
+          ? fieldTypes[field.type].parseValue(field.defaultValue)
+          : null
+
+        defaults[`@${field.id}`] = form.getFieldValue([field.id]) ?? defaultValue
+
+        if (field.slug) {
+          defaults[`$${field.slug}`] = form.getFieldValue([field.id]) ?? defaultValue
+        }
+      }
+      if (localStorage.getItem(`@${field.id}`) !== null) {
+        defaults[`@${field.id}`] = localStorage.getItem(`@${field.id}`)
+      }
+
+      if (localStorage.getItem(`$${field.slug}`) !== null) {
+        defaults[`$${field.slug}`] = localStorage.getItem(`$${field.slug}`)
+      }
+
+    })
+    // now calculate visibility
+    const nextVisibility = {}
+    fields.forEach(field => {
+      if (!field.logic) return
+      const logic = field.logic
+        .filter(logic => logic.action === 'visible')
+
+      if (logic.length === 0) {
+        return
+      }
+
+      nextVisibility[field.id] = logic
+        .map(logic => {
+          try {
+            const r = evaluator(
+              logic.formula,
+              defaults
+            )
+
+            return Boolean(r)
+          } catch {
+            return true
+          }
+        })
+        .reduce<boolean>((previous, current) => previous && current, true)
+    })
+
+    console.log('updatevalues nextVisibility: ', nextVisibility)
+    // TODO improve logic of how we calculate new logic checks
+    if (Object.values(nextVisibility).join(',') == Object.values(visiblity).join(',')) {
+      return
+    }
+
+    setVisibility(nextVisibility)
+  }, [
+    fields, form, visiblity,
+  ])
+
+  useEffect(() => {
+    updateValues(null)
+  }, [updateValues])
+
+  useEffect(() => {
+    localStorage.clear()
+  }, [])
 
   return (
     <div
@@ -74,7 +174,8 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
               }
 
               return (
-                <SwiperSlide key={field.id}>
+                <SwiperSlide key={field.id}
+                  onChange={updateValues}>
                   <Field
                     field={field}
                     focus={swiper?.activeIndex === (startPage.show ? 1 : 0) + i}
