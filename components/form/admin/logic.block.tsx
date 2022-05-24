@@ -128,7 +128,8 @@ export const LogicBlock: React.FC<Props> = ({
               label={t('form:logic.action.jumpTo')}
               rules={[{ required: true, message: 'Jump target is required' }]}
               extra={'after selecting field (works best with clickable values)'}
-            >
+              name={[field.name as string, 'jumpTo']}
+            >{/* name={[field.name as string, 'jump_target']}*/}
               <Select
                 options={fields
                   .filter((field) => !/NEW/i.test(field.id))

@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
 import { Modal, Form } from 'antd'
 import debug from 'debug'
 import { useTranslation } from 'react-i18next'
@@ -55,6 +57,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     let id = null
     let slug = null
     let value = null
+    let currentField = null
     if(typeof data !== 'undefined' && data !== null){
       value = data.target.value
       // identify the corresponding field, get the corresponding id and slug
@@ -65,6 +68,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
         } else {
           id= field.id
           slug = field.slug ? field.slug : null
+          currentField = field
         }
       })
     }
@@ -127,6 +131,39 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       localStorage.setItem(field.id, nextVisibility[field.id])
     })
 
+    // now calculate jump to
+    //let nextJumpId = null
+    console.log('jump to, current field: ', currentField)
+    if ( currentField !== null && !currentField.logic) {
+      let endJumpToProcessing = false
+      let enableJump = false
+      const logic = currentField.logic
+        .filter(logic => logic.action === 'jumpTo')
+
+      if (logic.length === 0) {
+        endJumpToProcessing = true
+      }
+      if(!endJumpToProcessing){
+        enableJump = logic.map(logic => {
+            try {
+              const r = evaluator(
+                logic.formula,
+                defaults
+              )
+
+              return Boolean(r)
+            } catch {
+              return true
+            }
+          })
+          .reduce<boolean>((previous: any, current: any) => previous && current, true)
+          if(enableJump){
+            //next field id
+          }
+      }
+    }
+    
+
     console.log('updatevalues nextVisibility: ', nextVisibility)
     // TODO improve logic of how we calculate new logic checks
     if (Object.values(nextVisibility).join(',') == Object.values(visiblity).join(',')) {
@@ -134,6 +171,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     }
 
     setVisibility(nextVisibility)
+
   }, [
     fields, form, visiblity,
   ])

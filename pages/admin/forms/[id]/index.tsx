@@ -68,6 +68,7 @@ const Index: NextPage = () => {
       id: router.query.id as string,
     },
     onCompleted: (next) => {
+      console.log('onCompleted next: ', next)
       const processed = processNext(next)
       form.setFieldsValue(processed)
       setFields(processed.form.fields)
@@ -76,12 +77,11 @@ const Index: NextPage = () => {
 
   const save = async (formData: Data) => {
     setSaving(true)
-
+    console.log('const save = async (formData: Data): ', formData)
     formData.form.fields = formData.form.fields
       .filter((e) => e && e.type)
       .map(({ optionKeys, ...field }, index) => {
         const options = field.options
-
         if (optionKeys) {
           Object.keys(optionKeys).forEach((key) => {
             if (optionKeys[key] === undefined) {
@@ -96,6 +96,7 @@ const Index: NextPage = () => {
           })
         }
 
+        console.log('index: ', index)
         return {
           ...field,
           defaultValue: field.defaultValue !== null ? JSON.stringify(field.defaultValue) : null,
@@ -112,7 +113,7 @@ const Index: NextPage = () => {
           })
         ).data
       )
-
+      console.log('form.setFieldsValue(next): ', next)
       form.setFieldsValue(next)
       setFields(next.form.fields)
 
