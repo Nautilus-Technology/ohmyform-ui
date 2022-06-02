@@ -60,6 +60,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     let currentField = null
     if(typeof data !== 'undefined' && data !== null){
       value = data.target.value
+      console.log('fields : ', fields)
       // identify the corresponding field, get the corresponding id and slug
       fields.forEach(field => {
         const option = field.options.filter(option => option.value === value)
@@ -117,6 +118,8 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       nextVisibility[field.id] = logic
         .map(logic => {
           try {
+            console.log('evaluator, formula: ', logic.formula)
+            console.log('evaluator, defaults: ', defaults)
             const r = evaluator(
               logic.formula,
               defaults
@@ -132,37 +135,39 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     })
 
     // now calculate jump to
+    console.log('form :', form)
     //let nextJumpId = null
     console.log('jump to, current field: ', currentField)
-    if ( currentField !== null && !currentField.logic) {
+    if ( currentField !== null && currentField.logic.length !== 0) {
+
       let endJumpToProcessing = false
       let enableJump = false
       const logic = currentField.logic
         .filter(logic => logic.action === 'jumpTo')
-
       if (logic.length === 0) {
         endJumpToProcessing = true
       }
       if(!endJumpToProcessing){
-        enableJump = logic.map(logic => {
-            try {
+        enableJump = currentField.logic
+          .map(logic => {
+            try{
               const r = evaluator(
                 logic.formula,
                 defaults
               )
-
               return Boolean(r)
             } catch {
               return true
             }
           })
-          .reduce<boolean>((previous: any, current: any) => previous && current, true)
-          if(enableJump){
-            //next field id
-          }
+        console.log('enableJump next field id: ', enableJump)
+        // if(enableJump){
+        //   //next field id
+        //   console.log('enableJump next field id: ', enableJump)
+        // }
       }
     }
-    
+
 
     console.log('updatevalues nextVisibility: ', nextVisibility)
     // TODO improve logic of how we calculate new logic checks

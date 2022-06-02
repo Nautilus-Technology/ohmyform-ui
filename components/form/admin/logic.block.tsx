@@ -126,7 +126,13 @@ export const LogicBlock: React.FC<Props> = ({
               }
               labelCol={{ span: 6 }}
               label={t('form:logic.action.jumpTo')}
-              rules={[{ required: true, message: 'Jump target is required' }]}
+              rules={[
+                { required:
+                form.getFieldValue([
+                  ...form.prefixName, field.name as string, 'action',
+                ]) ===
+                'jumpTo', message: 'Jump target is required' },
+              ]}
               extra={'after selecting field (works best with clickable values)'}
               name={[field.name as string, 'jumpTo']}
             >{/* name={[field.name as string, 'jump_target']}*/}

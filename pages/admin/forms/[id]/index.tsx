@@ -167,8 +167,9 @@ const Index: NextPage = () => {
       <Form
         form={form}
         onFinish={save}
-        onFinishFailed={async () => {
+        onFinishFailed={async (errors) => {
           // TODO process errors
+          console.log('TODO errors: ', errors)
           await message.error(t('validation:mandatoryFieldsMissing'))
         }}
         labelCol={{
