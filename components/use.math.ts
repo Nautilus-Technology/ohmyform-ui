@@ -9,6 +9,8 @@ export const useMath = (): ((
 ) => boolean) => {
   return (expression, values) => {
     const parser = init(formula, (term: string) => {
+      console.log('init values : ', values)
+      console.log('init term : ', term)
       if (values[term]) {
         return values[term]
       }

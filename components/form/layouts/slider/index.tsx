@@ -73,7 +73,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
         }
       })
     }
-
+    console.log('CURRENT FIELD: ', currentField)
 
     const defaults = {}
     fields.forEach(field => {
@@ -135,11 +135,12 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     })
 
     // now calculate jump to
-    console.log('form :', form)
+    //console.log('form :', form)
     //let nextJumpId = null
-    console.log('jump to, current field: ', currentField)
+    //console.log('jump to, current field: ', currentField)
+    console.log('ENABLEJUMPTOPROCESSING', currentField)
     if ( currentField !== null && currentField.logic.length !== 0) {
-
+        
       let endJumpToProcessing = false
       let enableJump = false
       const logic = currentField.logic
@@ -147,24 +148,35 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       if (logic.length === 0) {
         endJumpToProcessing = true
       }
+      //console.log('ENABLEJUMPTOPROCESSING', endJumpToProcessing)
       if(!endJumpToProcessing){
-        enableJump = currentField.logic
+        //console.log('ENABLEJUMPTOPROCESSING', endJumpToProcessing)
+        enableJump = logic
           .map(logic => {
             try{
               const r = evaluator(
                 logic.formula,
                 defaults
               )
+              console.log('enableJump formula: ', logic.formula)
+              console.log('enableJump defaults: ', defaults)
+              console.log('enableJump r: ', Boolean(r))
               return Boolean(r)
-            } catch {
+            } catch (error){
+              console.log('ERROR: ', error)
               return true
             }
           })
-        console.log('enableJump next field id: ', enableJump)
-        // if(enableJump){
-        //   //next field id
-        //   console.log('enableJump next field id: ', enableJump)
-        // }
+          .reduce<boolean>((previous, current) => previous && current, true)
+        console.log('enableJump show: ', enableJump)
+        if(enableJump){
+          //next field id
+          // TODO we suppose there is only one jumpTo action per field
+          const jumpTo = logic[0].jumpTo
+          localStorage.setItem('jumpTo', jumpTo)
+          localStorage.setItem('jumpToEnable', 'true')
+          //console.log('enableJump next field id: ', jumpTo)
+        }
       }
     }
 
@@ -224,6 +236,19 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
                   return null
                 }
               }
+
+              if(localStorage.getItem('jumpToEnable') === 'true'){
+                const jumpTo = localStorage.getItem('jumpTo')
+                console.log('JUMPTO', jumpTo)
+                if(field.id === jumpTo) {
+                  localStorage.setItem('jumpToEnable', 'false')
+                } else {
+                  return null
+                }
+              }
+
+              console.log('INDEX :', i)
+              console.log('---', field.title)
 
               return (
                 <SwiperSlide key={field.id}
