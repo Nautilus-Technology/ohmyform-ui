@@ -31,8 +31,20 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     if (!swiper) return
 
     logger('goNext')
+    console.log('goNext')
     swiper.allowSlideNext = true
-    swiper.slideNext()
+
+    if(localStorage.getItem('jumpToEnable') === 'true'){
+      const jumpTo = localStorage.getItem('jumpTo')
+      const [fieldToJumpTo] = fields.filter(field => field.id === jumpTo)
+      const fieldToJumpToIndex = fields.indexOf(fieldToJumpTo)
+      swiper.slideTo(fieldToJumpToIndex, 500, true)
+      localStorage.setItem('jumpToEnable', 'false')
+    } else {
+      swiper.slideNext(500, true)
+    }
+    
+    
     swiper.allowSlideNext = false
   }
   const goPrev = () => {
@@ -140,7 +152,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     //console.log('jump to, current field: ', currentField)
     console.log('ENABLEJUMPTOPROCESSING', currentField)
     if ( currentField !== null && currentField.logic.length !== 0) {
-        
+
       let endJumpToProcessing = false
       let enableJump = false
       const logic = currentField.logic
@@ -150,21 +162,21 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       }
       //console.log('ENABLEJUMPTOPROCESSING', endJumpToProcessing)
       if(!endJumpToProcessing){
-        //console.log('ENABLEJUMPTOPROCESSING', endJumpToProcessing)
+        console.log('LOGIC', logic)
         enableJump = logic
           .map(logic => {
             try{
+              console.log('enableJump formula: ', logic.formula)
+              console.log('enableJump defaults: ', defaults)
               const r = evaluator(
                 logic.formula,
                 defaults
               )
-              console.log('enableJump formula: ', logic.formula)
-              console.log('enableJump defaults: ', defaults)
               console.log('enableJump r: ', Boolean(r))
               return Boolean(r)
             } catch (error){
               console.log('ERROR: ', error)
-              return true
+              return false
             }
           })
           .reduce<boolean>((previous, current) => previous && current, true)
@@ -201,6 +213,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     localStorage.clear()
   }, [])
 
+
   return (
     <div
       className={'swiper-container'}
@@ -231,24 +244,11 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
               }
 
               if(typeof localStorage.getItem(field.id) !== 'undefined'){
-                console.log('localStorage.getItem( field.id )', localStorage.getItem(field.id))
+                //console.log('localStorage.getItem( field.id )', localStorage.getItem(field.id))
                 if(localStorage.getItem(field.id) === 'false'){
                   return null
                 }
               }
-
-              if(localStorage.getItem('jumpToEnable') === 'true'){
-                const jumpTo = localStorage.getItem('jumpTo')
-                console.log('JUMPTO', jumpTo)
-                if(field.id === jumpTo) {
-                  localStorage.setItem('jumpToEnable', 'false')
-                } else {
-                  return null
-                }
-              }
-
-              console.log('INDEX :', i)
-              console.log('---', field.title)
 
               return (
                 <SwiperSlide key={field.id}
@@ -265,6 +265,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
                       }
                     }}
                     next={() => {
+
                       if (fields.length === i + 1) {
                       // prevent going back!
                         swiper.allowSlidePrev = true
