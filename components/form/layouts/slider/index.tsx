@@ -173,6 +173,13 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
                 defaults
               )
               console.log('enableJump r: ', Boolean(r))
+              
+              if (Boolean(r) === true){
+                const jumpTo = logic.jumpTo
+                localStorage.setItem('jumpTo', jumpTo)
+                localStorage.setItem('jumpToEnable', 'true')
+              }
+
               return Boolean(r)
             } catch (error){
               console.log('ERROR: ', error)
@@ -181,14 +188,14 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
           })
           .reduce<boolean>((previous, current) => previous && current, true)
         console.log('enableJump show: ', enableJump)
-        if(enableJump){
-          //next field id
-          // TODO we suppose there is only one jumpTo action per field
-          const jumpTo = logic[0].jumpTo
-          localStorage.setItem('jumpTo', jumpTo)
-          localStorage.setItem('jumpToEnable', 'true')
-          //console.log('enableJump next field id: ', jumpTo)
-        }
+        // if(enableJump){
+        //   //next field id
+        //   // TODO we suppose there is only one jumpTo action per field
+        //   // const jumpTo = logic[0].jumpTo
+        //   // localStorage.setItem('jumpTo', jumpTo)
+        //   // localStorage.setItem('jumpToEnable', 'true')
+        //   //console.log('enableJump next field id: ', jumpTo)
+        // }
       }
     }
 
