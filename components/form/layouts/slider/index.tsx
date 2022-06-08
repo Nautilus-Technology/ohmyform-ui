@@ -16,6 +16,8 @@ import { useMath } from '../../../use.math'
 
 const logger = debug('layout/slider')
 
+const path = []
+
 export const SliderLayout: React.FC<LayoutProps> = (props) => {
   const { t } = useTranslation()
   const [swiper, setSwiper] = useState<SwiperClass>(null)
@@ -27,11 +29,20 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
   const evaluator = useMath()
 
 
+  //goNext writes the path and goes to the right next question
   const goNext = () => {
     if (!swiper) return
 
     logger('goNext')
-    console.log('goNext')
+    if(!path.includes(swiper.activeIndex)){
+      if(swiper.activeIndex < path[path.length - 1]){
+        //delete indexes greater than activeIndex
+        path.splice(path.findIndex(index => index > swiper.activeIndex))
+      }
+      path.push(swiper.activeIndex)
+    }
+
+    console.log('goNext: ', path)
     swiper.allowSlideNext = true
 
     if(localStorage.getItem('jumpToEnable') === 'true'){
@@ -43,17 +54,26 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
     } else {
       swiper.slideNext(500, true)
     }
-    
-    
+
+
     swiper.allowSlideNext = false
   }
+
+  //goNext reads the path and goes to the right previous question
   const goPrev = () => {
     if (!swiper) {
       return
     }
 
+    let slideToIndex = swiper.activeIndex - 1
+    const greaterIndexes = path.filter(index => index <= slideToIndex)
+    slideToIndex = greaterIndexes[greaterIndexes.length - 1]
+    console.log('goPrev: ', greaterIndexes)
+
+
     logger('goPrevious')
-    swiper.slidePrev()
+    //swiper.slidePrev()
+    swiper.slideTo(slideToIndex)
   }
 
   const swiperConfig: SwiperProps = {
@@ -173,7 +193,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
                 defaults
               )
               console.log('enableJump r: ', Boolean(r))
-              
+
               if (Boolean(r) === true){
                 const jumpTo = logic.jumpTo
                 localStorage.setItem('jumpTo', jumpTo)
