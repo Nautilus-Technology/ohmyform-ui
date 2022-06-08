@@ -49,6 +49,10 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       const jumpTo = localStorage.getItem('jumpTo')
       const [fieldToJumpTo] = fields.filter(field => field.id === jumpTo)
       const fieldToJumpToIndex = fields.indexOf(fieldToJumpTo)
+
+      //remove everything from activeIndex
+      path.splice(path.indexOf(swiper.activeIndex))
+
       swiper.slideTo(fieldToJumpToIndex, 500, true)
       localStorage.setItem('jumpToEnable', 'false')
     } else {
