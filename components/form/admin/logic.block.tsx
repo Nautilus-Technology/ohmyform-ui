@@ -104,10 +104,6 @@ export const LogicBlock: React.FC<Props> = ({
               label: t('form:logic.action.visible'),
             },
             {
-              value: 'disable',
-              label: t('form:logic.action.disable'),
-            },
-            {
               value: 'require',
               label: t('form:logic.action.require'),
             },
