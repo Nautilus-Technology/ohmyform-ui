@@ -11,10 +11,11 @@ import { LayoutProps } from '../layout.props'
 import { Field } from './field'
 import { FormPage } from './page'
 import React, { useCallback, useEffect, useState } from 'react'
-import { fieldTypes } from '../../types'
 import { useMath } from '../../../use.math'
 
 const logger = debug('layout/slider')
+const path = [0]
+const defaults = {}
 
 export const SliderLayout: React.FC<LayoutProps> = (props) => {
   const { t } = useTranslation()
@@ -22,26 +23,76 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
   const { height } = useWindowSize()
   const { design, startPage, endPage, fields } = props.form
   const { finish, setField } = props.submission
-  const [visiblity, setVisibility] = useState({})
   const [form] = Form.useForm()
   const evaluator = useMath()
 
 
+  const evaluate = (formula, defaults, errorFeedback) => {
+    try{
+      const r = evaluator(
+        formula,
+        defaults
+      )
+      return Boolean(r)
+    } catch (error){
+      console.log('ERROR: ', error)
+      return errorFeedback
+    }
+  }
+
   const goNext = () => {
     if (!swiper) return
-
     logger('goNext')
+    if(swiper.activeIndex === fields.length - 1){
+      swiper.allowSlideNext = true
+      swiper.slideNext()
+      swiper.allowSlideNext = false
+      return
+    }
     swiper.allowSlideNext = true
-    swiper.slideNext()
+    let nextIndex = swiper.activeIndex >= fields.length - 1 ?
+      fields.length - 1 : swiper.activeIndex + 1
+
+    //determine next slide index
+    //check jumpTo action
+    const logic = fields[swiper.activeIndex].logic
+      .filter(logic => logic.action === 'jumpTo')
+    if (logic.length !== 0) {
+      logic.map(logic => {
+        if(evaluate(logic.formula, defaults, true) === true){
+          const jumpTo = logic.jumpTo
+          const [nextField] = fields.filter(field => field.id === jumpTo)
+          nextIndex = fields.indexOf(nextField)
+          console.log('nextIndex: ', nextIndex)
+        }
+        return evaluate(logic.formula, defaults, true)
+      })
+    }
+
+    swiper.slideTo(nextIndex)
+    if(!path.includes(swiper.activeIndex)){
+      path.push(swiper.activeIndex)
+    }
     swiper.allowSlideNext = false
+    console.log('goNext path', path)
   }
   const goPrev = () => {
     if (!swiper) {
       return
     }
-
+    if(swiper.activeIndex === 0){
+      return
+    }
+    if (swiper.activeIndex === fields.length){
+      swiper.slidePrev()
+      return
+    }
     logger('goPrevious')
-    swiper.slidePrev()
+
+    const activePosition = path.lastIndexOf(swiper.activeIndex)
+    swiper.slideTo(Math.max(path[activePosition - 1], 0))
+    path.splice(Math.max(path[activePosition - 1], 0)+1)
+    console.log('goPrev path', path)
   }
 
   const swiperConfig: SwiperProps = {
@@ -54,140 +105,24 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
 
 
   const updateValues = useCallback((data) => {
-    let id = null
-    let slug = null
-    let value = null
-    let currentField = null
     if(typeof data !== 'undefined' && data !== null){
-      value = data.target.value
-      console.log('fields : ', fields)
+      const value = data.target.value
       // identify the corresponding field, get the corresponding id and slug
-      fields.forEach(field => {
-        const option = field.options.filter(option => option.value === value)
-        if(option.length === 0){
-          return
-        } else {
-          id= field.id
-          slug = field.slug ? field.slug : null
-          currentField = field
-        }
-      })
-    }
+      const activeIndex = path[path.length - 1]
+      const id= fields[activeIndex].id
+      const slug = fields[activeIndex].slug ? fields[activeIndex].slug : null
 
-
-    const defaults = {}
-    fields.forEach(field => {
-      if( id !== null && field.id === id){
-        defaults[`@${field.id}`] = value
-        localStorage.setItem(`@${field.id}`, value);
-        if (field.slug) {
-          defaults[`$${field.slug}`] = value
-          localStorage.setItem(`$${field.slug}`, value);
-        }
-      } else {
-        const defaultValue = field.defaultValue
-          ? fieldTypes[field.type].parseValue(field.defaultValue)
-          : null
-
-        defaults[`@${field.id}`] = form.getFieldValue([field.id]) ?? defaultValue
-
-        if (field.slug) {
-          defaults[`$${field.slug}`] = form.getFieldValue([field.id]) ?? defaultValue
-        }
-      }
-      if (localStorage.getItem(`@${field.id}`) !== null) {
-        defaults[`@${field.id}`] = localStorage.getItem(`@${field.id}`)
-      }
-
-      if (localStorage.getItem(`$${field.slug}`) !== null) {
-        defaults[`$${field.slug}`] = localStorage.getItem(`$${field.slug}`)
-      }
-
-    })
-    // now calculate visibility
-    const nextVisibility = {}
-    fields.forEach(field => {
-      if (!field.logic) return
-      const logic = field.logic
-        .filter(logic => logic.action === 'visible')
-
-      if (logic.length === 0) {
-        return
-      }
-
-      nextVisibility[field.id] = logic
-        .map(logic => {
-          try {
-            console.log('evaluator, formula: ', logic.formula)
-            console.log('evaluator, defaults: ', defaults)
-            const r = evaluator(
-              logic.formula,
-              defaults
-            )
-
-            return Boolean(r)
-          } catch {
-            return true
-          }
-        })
-        .reduce<boolean>((previous, current) => previous && current, true)
-      localStorage.setItem(field.id, nextVisibility[field.id])
-    })
-
-    // now calculate jump to
-    console.log('form :', form)
-    //let nextJumpId = null
-    console.log('jump to, current field: ', currentField)
-    if ( currentField !== null && currentField.logic.length !== 0) {
-
-      let endJumpToProcessing = false
-      let enableJump = false
-      const logic = currentField.logic
-        .filter(logic => logic.action === 'jumpTo')
-      if (logic.length === 0) {
-        endJumpToProcessing = true
-      }
-      if(!endJumpToProcessing){
-        enableJump = currentField.logic
-          .map(logic => {
-            try{
-              const r = evaluator(
-                logic.formula,
-                defaults
-              )
-              return Boolean(r)
-            } catch {
-              return true
-            }
-          })
-        console.log('enableJump next field id: ', enableJump)
-        // if(enableJump){
-        //   //next field id
-        //   console.log('enableJump next field id: ', enableJump)
-        // }
+      defaults[`@${id}`] = value
+      if (slug) {
+        defaults[`$${slug}`] = value
       }
     }
-
-
-    console.log('updatevalues nextVisibility: ', nextVisibility)
-    // TODO improve logic of how we calculate new logic checks
-    if (Object.values(nextVisibility).join(',') == Object.values(visiblity).join(',')) {
-      return
-    }
-
-    setVisibility(nextVisibility)
-
-  }, [
-    fields, form, visiblity,
-  ])
+  }, [fields, form])
 
   useEffect(() => {
     updateValues(null)
   }, [updateValues])
 
-  useEffect(() => {
-    localStorage.clear()
-  }, [])
 
   return (
     <div
@@ -218,12 +153,6 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
                 return null
               }
 
-              if(typeof localStorage.getItem(field.id) !== 'undefined'){
-                console.log('localStorage.getItem( field.id )', localStorage.getItem(field.id))
-                if(localStorage.getItem(field.id) === 'false'){
-                  return null
-                }
-              }
 
               return (
                 <SwiperSlide key={field.id}
