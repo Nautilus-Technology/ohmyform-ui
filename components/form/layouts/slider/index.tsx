@@ -210,7 +210,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
               return false
             }
           })
-          .reduce<boolean>((previous, current) => previous && current, true)
+        reduce<boolean>((previous, current) => previous && current, true)
         console.log('enableJump show: ', enableJump)
         // if(enableJump){
         //   //next field id
