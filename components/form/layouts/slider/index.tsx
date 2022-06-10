@@ -27,6 +27,26 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
   const evaluator = useMath()
 
 
+  const isVisible = (field) => {
+
+    const logic = field.logic
+      .filter(logic => logic.action === 'visible')
+    if (logic.length === 0){
+      console.log('isVisible: [true]')
+      return true
+    } else {
+      const visibility = logic.map(logic => {
+        return evaluate(logic.formula, defaults, true)
+      })
+      console.log('isVisible: ', visibility)
+      if(visibility.includes(false)){
+        return false
+      } else {
+        return true
+      }
+    }
+  }
+
   const evaluate = (formula, defaults, errorFeedback) => {
     try{
       const r = evaluator(
@@ -69,7 +89,24 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       })
     }
 
+    //check visible action
+    let i = nextIndex
+    if(!isVisible(fields[nextIndex])){
+
+      while(i < fields.length && isVisible(fields[i]) === false){
+        i = i + 1
+      }
+      console.log('i = ', i)
+      if(swiper.activeIndex === fields.length){
+      //TODO: check if swiper can switch to that index
+        nextIndex = i
+      } else {
+        nextIndex = i
+      }
+    }
+
     swiper.slideTo(nextIndex)
+
     if(!path.includes(swiper.activeIndex)){
       path.push(swiper.activeIndex)
     }
