@@ -13,6 +13,7 @@ import { SliderType } from './slider'
 import { TextareaType } from './textarea'
 import { TextfieldType } from './textfield'
 import { YesNoType } from './yes_no'
+import { FileType } from './file'
 
 export const fieldTypes: {
   [key: string]: AbstractType
@@ -31,4 +32,5 @@ export const fieldTypes: {
   textarea: new TextareaType(),
   textfield: new TextfieldType(),
   yes_no: new YesNoType(),
+  file: new FileType(),
 }

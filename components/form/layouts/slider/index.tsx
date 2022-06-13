@@ -111,7 +111,6 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       path.push(swiper.activeIndex)
     }
     swiper.allowSlideNext = false
-    console.log('goNext path', path)
   }
   const goPrev = () => {
     if (!swiper) {
@@ -154,6 +153,8 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
         defaults[`$${slug}`] = value
       }
     }
+
+    console.log('goNext defaults', defaults)
   }, [fields, form])
 
   useEffect(() => {

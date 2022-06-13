@@ -72,5 +72,9 @@
   "yes_no": {
     "default": "Valeur par défaut",
     "name": "Oui \/ Non"
+  },
+  "file": {
+    "default": "Valeur par défaut",
+    "name": "Fichier"
   }
 }
