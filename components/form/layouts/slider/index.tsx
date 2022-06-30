@@ -154,7 +154,7 @@ export const SliderLayout: React.FC<LayoutProps> = (props) => {
       }
     }
 
-    console.log('goNext defaults', defaults)
+    //console.log('goNext defaults', defaults)
   }, [fields, form])
 
   useEffect(() => {

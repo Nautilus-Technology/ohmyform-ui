@@ -4,8 +4,12 @@ import debug from 'debug'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { FieldInputBuilderType } from '../field.input.builder.type'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
+const axios = require('axios').default;
 
 const logger = debug('file.input')
+
+const filesMap = []
 
 export const builder: FieldInputBuilderType = ({
   parseUrlValue,
@@ -48,9 +52,49 @@ export const builder: FieldInputBuilderType = ({
           listType='picture'
           action={'http://localhost:3000/'}
           showUploadList={{showRemoveIcon: true}}
+
+          defaultFileList={
+            filesMap.map((element) => {
+              if (element.fieldId == field.id){
+                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
+                return element.file
+              }
+            })
+          }
           //accept='.png, .jpeg, .doc'
-          beforeUpload={(file) => {
-            console.log({file});
+          onRemove={ (file) => {
+            console.log('onRemove: ', file)
+            console.log('filesMap: ', filesMap)
+            //delete corresponding file from filesMap and the database
+            const fileIndex = filesMap.findIndex((element) => element.uid == file.uid)
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
+            filesMap.slice(fileIndex, 1)
+
+            return true
+          }}
+          beforeUpload={ (file) => {
+            const element = {}
+            const data = new FormData();
+            data.append('file', file);
+
+            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+            axios.post(`http://localhost:3000/upload/single/${field.id}`, data)
+              .then(function (response) {
+                console.log('response.data: ', response.data);
+                element['uid'] = file.uid
+                element['filename'] = response.data.filename
+                element['fieldId'] = field.id
+                element['file'] = file
+                element['response'] = response
+                filesMap.push(element)
+              })
+              .catch(function (error) {
+                console.log(error);
+              });
+
+            console.log('file ', file);
+
             return false;
           }}
           iconRender={() => {
