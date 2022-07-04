@@ -102,6 +102,7 @@ export const builder: FieldInputBuilderType = ({
             return <img src={require('../../../../assets/images/validation.png')} alt='' height={48} width={48} />
 
           }}
+          isImageUrl={() => false}
         >
         Glisser les fichiers ici ou
           <br/>
