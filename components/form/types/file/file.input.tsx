@@ -56,7 +56,7 @@ export const builder: FieldInputBuilderType = ({
           showUploadList={{showRemoveIcon: true, showPreviewIcon: false}}
           defaultFileList={
             filesMap
-              .filter((element) => element.fieldId == field.id)
+              .filter((element) => element.fieldId == field.id && element.deleted === false)
               .map((element) => element.file)
           }
           onRemove={ (file) => {
@@ -65,6 +65,7 @@ export const builder: FieldInputBuilderType = ({
             //delete corresponding file from filesMap and the database
             const fileIndex = filesMap.findIndex((element) => element.uid == file.uid)
             axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
+            filesMap[fileIndex].deleted = true
             filesMap.slice(fileIndex, 1)
 
             return true
@@ -83,6 +84,7 @@ export const builder: FieldInputBuilderType = ({
                 element['fieldId'] = field.id
                 element['file'] = file
                 element['response'] = response
+                element['deleted'] = false
                 filesMap.push(element)
               })
               .catch(function (error) {
