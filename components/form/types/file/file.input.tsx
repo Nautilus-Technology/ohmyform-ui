@@ -25,6 +25,8 @@ export const builder: FieldInputBuilderType = ({
 }) {
   const { t } = useTranslation()
 
+  console.log('filesMap--', filesMap)
+
   let initialValue = null
 
   if (field.defaultValue) {
@@ -43,10 +45,7 @@ export const builder: FieldInputBuilderType = ({
     <div>
       <Form.Item
         name={[field.id]}
-        rules={[
-          { required: field.required, message: t('validation:valueRequired') },
-          //{ type: 'email', message: t('validation:invalidEmail') },
-        ]}
+        rules={[{ required: field.required, message: t('validation:valueRequired') }]}
         initialValue={initialValue}
       >
 
@@ -55,15 +54,11 @@ export const builder: FieldInputBuilderType = ({
           listType='picture'
           action={'http://localhost:3000/'}
           showUploadList={{showRemoveIcon: true, showPreviewIcon: false}}
-          // iconRender={() => {
-          //   //return '+++'
-          // }}
           defaultFileList={
             filesMap
               .filter((element) => element.fieldId == field.id)
               .map((element) => element.file)
           }
-          //accept='.png, .jpeg, .doc'
           onRemove={ (file) => {
             console.log('onRemove: ', file);
             console.log('filesMap: ', filesMap);
@@ -98,11 +93,30 @@ export const builder: FieldInputBuilderType = ({
 
             return false;
           }}
-          iconRender={() => {
-            return <img src={require('../../../../assets/images/validation.png')} alt='' height={48} width={48} />
+          iconRender={(file) => {
+            const fileIndex = filesMap.findIndex((element) => element.uid == file.uid)
+            if (typeof file.thumbUrl !== 'undefined') {
+              filesMap[fileIndex] = {...filesMap[fileIndex], 'thumbUrl': file.thumbUrl}
+              return <img src={require('../../../../assets/images/validation.png')} alt='' height={48} width={48} />
+            }
+            console.log('iconRender - file : ', file)
+
+            if(typeof filesMap[fileIndex] !== 'undefined'){
+              if(typeof filesMap[fileIndex]['thumbUrl'] !== 'undefined'){
+                console.log('filesMap[fileIndex][response]', filesMap[fileIndex]['response'])
+                if(typeof filesMap[fileIndex]['response'] !== 'undefined'){
+                  if(typeof filesMap[fileIndex]['response'].data !== 'undefined'){
+                    if(filesMap[fileIndex]['response'].data.mimetype.includes('image')){
+                      return <img src={ filesMap[fileIndex]['thumbUrl'] } alt='' height={48} width={48} />
+                    }
+                  }
+                }
+              }
+            }
+            return <img src={ require('../../../../assets/images/validation.png') } alt='' height={48} width={48} />
 
           }}
-          isImageUrl={() => false}
+          isImageUrl={() => true}
         >
         Glisser les fichiers ici ou
           <br/>
