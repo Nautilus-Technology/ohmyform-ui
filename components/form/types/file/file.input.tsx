@@ -1,4 +1,7 @@
-import { Form, Button, Upload, Spin } from 'antd'
+/* eslint-disable @typescript-eslint/restrict-template-expressions */
+/* eslint-disable @typescript-eslint/no-unsafe-call */
+/* eslint-disable @typescript-eslint/no-unsafe-return */
+import { Form, Button, Upload } from 'antd'
 import 'antd/dist/antd.css'
 import debug from 'debug'
 import React from 'react'
@@ -51,23 +54,21 @@ export const builder: FieldInputBuilderType = ({
           multiple
           listType='picture'
           action={'http://localhost:3000/'}
-          showUploadList={{showRemoveIcon: true}}
-
+          showUploadList={{showRemoveIcon: true, showPreviewIcon: false}}
+          // iconRender={() => {
+          //   //return '+++'
+          // }}
           defaultFileList={
-            filesMap.map((element) => {
-              if (element.fieldId == field.id){
-                // eslint-disable-next-line @typescript-eslint/no-unsafe-return
-                return element.file
-              }
-            })
+            filesMap
+              .filter((element) => element.fieldId == field.id)
+              .map((element) => element.file)
           }
           //accept='.png, .jpeg, .doc'
           onRemove={ (file) => {
-            console.log('onRemove: ', file)
-            console.log('filesMap: ', filesMap)
+            console.log('onRemove: ', file);
+            console.log('filesMap: ', filesMap);
             //delete corresponding file from filesMap and the database
             const fileIndex = filesMap.findIndex((element) => element.uid == file.uid)
-            // eslint-disable-next-line @typescript-eslint/no-unsafe-call
             axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
             filesMap.slice(fileIndex, 1)
 
@@ -98,15 +99,8 @@ export const builder: FieldInputBuilderType = ({
             return false;
           }}
           iconRender={() => {
-            return <Spin></Spin>
-          }}
-          progress={{
-            strokeWidth: 3,
-            strokeColor: {
-              '0%':'#f0f',
-              '100%':'#ff0',
-            },
-            style: { top: 12},
+            return <img src={require('../../../../assets/images/validation.png')} alt='' height={48} width={48} />
+
           }}
         >
         Glisser les fichiers ici ou
