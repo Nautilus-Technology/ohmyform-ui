@@ -52,7 +52,7 @@ export const builder: FieldInputBuilderType = ({
         <Upload.Dragger
           multiple
           listType='picture'
-          action={'http://localhost:3000/'}
+          //action={'http://localhost:3000/'}
           showUploadList={{showRemoveIcon: true, showPreviewIcon: false}}
           defaultFileList={
             filesMap

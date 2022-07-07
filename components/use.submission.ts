@@ -72,6 +72,9 @@ export const useSubmission = (formId: string): Submission => {
       }
 
       logger('save field id=%O %O', fieldId, data)
+      if(typeof data['file'] !== 'undefined'){
+        data = {}
+      }
       await save({
         variables: {
           submission: submission.id,
