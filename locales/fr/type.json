@@ -50,6 +50,7 @@
     "name": "Évaluation"
   },
   "required": "Obligatoire",
+  "multiple": "Plusieurs",
   "requiredInfo": "Si obligatoire, la valeur par défaut doit être définie pour permettre aux utilisateurs de soumettre le formulaire !",
   "slider": {
     "default": "Valeur par défaut",

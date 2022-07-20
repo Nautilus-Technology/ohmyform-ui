@@ -209,6 +209,20 @@ export const FieldCard: React.FC<Props> = ({
         <Checkbox />
       </Form.Item>
 
+      {
+        type === 'file' ?
+          <Form.Item
+            label={t('type:multiple')}
+            name={[field.name as string, 'multiple']}
+            labelCol={{ span: 6 }}
+            valuePropName={'checked'}
+          >
+            <Checkbox />
+          </Form.Item>
+          :
+          null
+      }
+
       <TypeComponent field={field} form={form} />
 
       <Form.List name={[field.name as string, 'logic']}>
