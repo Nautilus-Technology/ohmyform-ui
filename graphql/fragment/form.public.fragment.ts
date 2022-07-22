@@ -42,6 +42,7 @@ export interface FormPublicFieldFragment {
   type: string
   description: string
   required: boolean
+  multiple?: boolean
   defaultValue: string
 
   options: FormPublicFieldOptionFragment[]
@@ -93,6 +94,7 @@ export const FORM_PUBLIC_FRAGMENT = gql`
       type
       description
       required
+      multiple
       defaultValue
 
       logic {

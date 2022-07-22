@@ -46,6 +46,7 @@ export interface FormFieldFragment {
   type: string
   description: string
   required: boolean
+  multiple?: boolean
   defaultValue?: string
 
   options: FormFieldOptionFragment[]
@@ -135,6 +136,7 @@ export const FORM_FRAGMENT = gql`
       type
       description
       required
+      multiple
       defaultValue
 
       options {

@@ -41,6 +41,8 @@ export const builder: FieldInputBuilderType = ({
     initialValue = parseUrlValue(urlValue)
   }
 
+  const maxCount = field.multiple === true ? 4 : 1
+
   return (
     <div>
       <Form.Item
@@ -50,10 +52,10 @@ export const builder: FieldInputBuilderType = ({
       >
 
         <Upload.Dragger
-          multiple
-          listType='picture'
-          //action={'http://localhost:3000/'}
+          //multiple
           showUploadList={{showRemoveIcon: true, showPreviewIcon: false}}
+          maxCount={maxCount}
+          listType='picture'
           defaultFileList={
             filesMap
               .filter((element) => element.fieldId == field.id && element.deleted === false)
@@ -71,6 +73,23 @@ export const builder: FieldInputBuilderType = ({
             return true
           }}
           beforeUpload={ (file) => {
+            console.log('FIELD: ', field)
+            if(field.multiple === true){
+              console.log('MULTIPLE = TRUE', field.multiple)
+              if(filesMap.length >= maxCount){
+                return false
+              }
+            } else {
+              console.log('MULTIPLE != TRUE', field.multiple)
+              if(filesMap.length >= 1){
+                //delete the previously uploaded file
+                const fileIndex = filesMap.length - 1
+                axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
+                filesMap[fileIndex].deleted = true
+                filesMap.slice(fileIndex, 1)
+              }
+            }
+
             const element = {}
             const data = new FormData();
             data.append('file', file);
