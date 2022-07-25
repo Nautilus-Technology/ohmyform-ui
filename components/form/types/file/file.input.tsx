@@ -7,7 +7,6 @@ import debug from 'debug'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { FieldInputBuilderType } from '../field.input.builder.type'
-import FlashMessage from 'react-flash-message'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default;
 
@@ -78,9 +77,10 @@ export const builder: FieldInputBuilderType = ({
               console.log('MULTIPLE = TRUE', field.multiple)
               let cpt = 0
               for(let i = 0; i < filesMap.length; i++){
-                if(filesMap[i].deleted === false){
+                if(filesMap[i].deleted === false && filesMap[i].fieldId === field.id){
                   cpt++
                   if(cpt >= maxCount){
+                    alert(`${maxCount} fichiers autorisés`)
                     return false
                   }
                 }
@@ -90,14 +90,16 @@ export const builder: FieldInputBuilderType = ({
               // }
             } else {
               console.log('MULTIPLE != TRUE', field.multiple)
-              if(filesMap.length >= 1){
+              if(filesMap.filter(element =>  element.fieldId === field.id 
+                && element.deleted === false).length >= 1){
                 //delete the previously uploaded file
                 //const fileIndex = filesMap.length - 1
                 const fileIndex = filesMap.findIndex((element) =>
-                  element.deleted === false)
+                  element.deleted === false && element.fieldId === field.id)
                 axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
                 filesMap[fileIndex].deleted = true
                 //filesMap.slice(fileIndex, 1)
+                alert('Un seul fichier autorisé')
               }
             }
 
@@ -117,19 +119,24 @@ export const builder: FieldInputBuilderType = ({
                 element['deleted'] = false
                 filesMap.push(element)
 
+                let displayAlert = false
                 let cpt = 0
                 for(let i = 0; i < filesMap.length; i++){
-                  if(cpt >= maxCount && filesMap[i].deleted === false){
+                  if(cpt >= maxCount && filesMap[i].deleted === false 
+                    && filesMap[i].fieldId === field.id){
                     //delete the previously uploaded files
                     axios.delete(`http://localhost:3000/upload/${filesMap[i].filename}`)
                     filesMap[i].deleted = true
                     //filesMap.slice(i, 1)
+                    displayAlert = true
                   }
-                  if(filesMap[i].deleted === false){
+                  if(filesMap[i].deleted === false && filesMap[i].fieldId === field.id){
                     cpt++
                   }
                 }
-                console.log('AFTER DELETION: ', filesMap)
+                if(displayAlert === true){
+                  alert(`${maxCount} fichiers autorisés`)
+                }
               })
               .catch(function (error) {
                 console.log(error);
@@ -168,9 +175,6 @@ export const builder: FieldInputBuilderType = ({
           <br/>
           <Button>Téléverser</Button>
         </Upload.Dragger>
-        <FlashMessage duration={5000}>
-          <p style={{color: 'red'}} >{maxCount} fichier(s) autorisé(s)</p>
-        </FlashMessage>
       </Form.Item>
     </div>
   )
