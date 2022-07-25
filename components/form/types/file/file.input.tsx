@@ -52,7 +52,7 @@ export const builder: FieldInputBuilderType = ({
       >
 
         <Upload.Dragger
-          //multiple
+          multiple={field.multiple}
           showUploadList={{showRemoveIcon: true, showPreviewIcon: false}}
           maxCount={maxCount}
           listType='picture'
@@ -65,10 +65,10 @@ export const builder: FieldInputBuilderType = ({
             console.log('onRemove: ', file);
             console.log('filesMap: ', filesMap);
             //delete corresponding file from filesMap and the database
-            const fileIndex = filesMap.findIndex((element) => element.uid == file.uid)
+            const fileIndex = filesMap.findIndex((element, index) => element.uid == file.uid
+                                                        && filesMap[index].deleted === false)
             axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
             filesMap[fileIndex].deleted = true
-            filesMap.slice(fileIndex, 1)
 
             return true
           }}
@@ -76,17 +76,29 @@ export const builder: FieldInputBuilderType = ({
             console.log('FIELD: ', field)
             if(field.multiple === true){
               console.log('MULTIPLE = TRUE', field.multiple)
-              if(filesMap.length >= maxCount){
-                return false
+              let cpt = 0
+              for(let i = 0; i < filesMap.length; i++){
+                if(filesMap[i].deleted === false){
+                  cpt++
+                  if(cpt >= maxCount){
+                    return false
+                  }
+                }
               }
+              // if(filesMap.length >= maxCount){
+              //   return false
+              // }
             } else {
               console.log('MULTIPLE != TRUE', field.multiple)
               if(filesMap.length >= 1){
                 //delete the previously uploaded file
-                const fileIndex = filesMap.length - 1
+                //const fileIndex = filesMap.length - 1
+                const fileIndex = filesMap.findIndex((element, index) =>
+                  filesMap[filesMap.length-1].uid == file.uid
+                && filesMap[index].deleted === false)
                 axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
                 filesMap[fileIndex].deleted = true
-                filesMap.slice(fileIndex, 1)
+                //filesMap.slice(fileIndex, 1)
               }
             }
 
@@ -105,6 +117,20 @@ export const builder: FieldInputBuilderType = ({
                 element['response'] = response
                 element['deleted'] = false
                 filesMap.push(element)
+
+                let cpt = 0
+                for(let i = 0; i < filesMap.length; i++){
+                  if(cpt >= maxCount && filesMap[i].deleted === false){
+                    //delete the previously uploaded files
+                    axios.delete(`http://localhost:3000/upload/${filesMap[i].filename}`)
+                    filesMap[i].deleted = true
+                    //filesMap.slice(i, 1)
+                  }
+                  if(filesMap[i].deleted === false){
+                    cpt++
+                  }
+                }
+                console.log('AFTER DELETION: ', filesMap)
               })
               .catch(function (error) {
                 console.log(error);
