@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unsafe-return */
 import { useMutation } from '@apollo/client'
 import debug from 'debug'
 import { useCallback, useEffect, useState } from 'react'
@@ -73,7 +74,9 @@ export const useSubmission = (formId: string): Submission => {
 
       logger('save field id=%O %O', fieldId, data)
       if(typeof data['file'] !== 'undefined'){
-        data = {}
+        // eslint-disable-next-line @typescript-eslint/no-unsafe-call
+        data = data['fileList'].map(element => element.name)
+        console.log('FILE ENTRY: ', typeof data)
       }
       await save({
         variables: {
