@@ -7,6 +7,7 @@ import debug from 'debug'
 import React from 'react'
 import { useTranslation } from 'react-i18next'
 import { FieldInputBuilderType } from '../field.input.builder.type'
+import FlashMessage from 'react-flash-message'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const axios = require('axios').default;
 
@@ -50,7 +51,6 @@ export const builder: FieldInputBuilderType = ({
         rules={[{ required: field.required, message: t('validation:valueRequired') }]}
         initialValue={initialValue}
       >
-
         <Upload.Dragger
           multiple={field.multiple}
           showUploadList={{showRemoveIcon: true, showPreviewIcon: false}}
@@ -93,9 +93,8 @@ export const builder: FieldInputBuilderType = ({
               if(filesMap.length >= 1){
                 //delete the previously uploaded file
                 //const fileIndex = filesMap.length - 1
-                const fileIndex = filesMap.findIndex((element, index) =>
-                  filesMap[filesMap.length-1].uid == file.uid
-                && filesMap[index].deleted === false)
+                const fileIndex = filesMap.findIndex((element) =>
+                  element.deleted === false)
                 axios.delete(`http://localhost:3000/upload/${filesMap[fileIndex].filename}`)
                 filesMap[fileIndex].deleted = true
                 //filesMap.slice(fileIndex, 1)
@@ -169,6 +168,9 @@ export const builder: FieldInputBuilderType = ({
           <br/>
           <Button>Téléverser</Button>
         </Upload.Dragger>
+        <FlashMessage duration={5000}>
+          <p style={{color: 'red'}} >{maxCount} fichier(s) autorisé(s)</p>
+        </FlashMessage>
       </Form.Item>
     </div>
   )
